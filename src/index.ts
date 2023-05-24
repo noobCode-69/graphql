@@ -1,12 +1,17 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 
-interface Books {
+interface Book {
   title: string;
   author: string;
 }
 
-const books: Books[] = [
+interface Author {
+  name: string;
+  books: string[];
+}
+
+const books: Book[] = [
   {
     title: "The Awakening",
     author: "Kate Chopin",
@@ -17,23 +22,51 @@ const books: Books[] = [
   },
 ];
 
+const author: Author[] = [
+  {
+    name: "Kate Chopin",
+    books: ["The Awakening"],
+  },
+  {
+    name: "Paul Auster",
+    books: ["City of Glass"],
+  },
+];
+
 // Make typeDef , #graphql is used for syntax highlighting , but not working in my machine
 const typeDefs = `#graphql
+  
   type Book {
-    title: String
-    author: String
+    title : String
+    author : Author
   }
+
+  type Author {
+    name : String
+    books : [Book]
+  }
+
+
   type Query {
     books : [Book]
+    author : [Author]
   }
 `;
 
-// resolver is a object , that have two properties only  , Query and Mutation
+// resolver is a object , that have two properties functions only , Query and Mutation
 const resolvers = {
   Query: {
-    books: (): Books[] => {
-      console.log("inside the function");
+    books: (): Book[] => {
       return books;
+    },
+    author: (): Author[] => {
+      return author;
+    },
+  },
+
+  Book: {
+    author: (parent: Book): Author => {
+      return author.find((a) => a.name === parent.author);
     },
   },
 };

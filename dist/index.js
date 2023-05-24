@@ -10,25 +10,49 @@ const books = [
         author: "Paul Auster",
     },
 ];
+const author = [
+    {
+        name: "Kate Chopin",
+        books: ["The Awakening"],
+    },
+    {
+        name: "Paul Auster",
+        books: ["City of Glass"],
+    },
+];
 // Make typeDef , #graphql is used for syntax highlighting , but not working in my machine
 const typeDefs = `#graphql
-
+  
   type Book {
-    title: String
-    author: String
+    title : String
+    author : Author
+  }
+
+  type Author {
+    name : String
+    books : [Book]
   }
 
 
   type Query {
     books : [Book]
+    author : [Author]
   }
 `;
-// resolver is a object , that have two functions only , Query and Mutation
+// resolver is a object , that have two properties functions only , Query and Mutation
 const resolvers = {
     Query: {
         books: () => {
-            console.log("inside the function");
             return books;
+        },
+        author: () => {
+            return author;
+        },
+    },
+    Book: {
+        author: (parent) => {
+            // console.log(parent.title);
+            return author.find((a) => a.name === parent.author);
         },
     },
 };

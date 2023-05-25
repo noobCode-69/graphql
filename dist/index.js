@@ -10,7 +10,7 @@ const books = [
         author: "Paul Auster",
     },
 ];
-const author = [
+const authors = [
     {
         name: "Kate Chopin",
         books: ["The Awakening"],
@@ -38,21 +38,45 @@ const typeDefs = `#graphql
     books : [Book]
     author : [Author]
   }
+
+
+  type Mutation {
+    books(title : String , author : String) : Book
+  }
+
 `;
-// resolver is a object , that have two properties functions only , Query and Mutation
 const resolvers = {
     Query: {
         books: () => {
             return books;
         },
         author: () => {
-            return author;
+            return authors;
+        },
+    },
+    Mutation: {
+        books: (parent, { title, author }) => {
+            const existingAuthor = authors.find((a) => a.name === author);
+            if (!existingAuthor) {
+                authors.push({
+                    name: author,
+                    books: [title],
+                });
+            }
+            else {
+                existingAuthor.books.push(title);
+            }
+            const newBook = {
+                title,
+                author,
+            };
+            books.push(newBook);
+            return newBook;
         },
     },
     Book: {
         author: (parent) => {
-            // console.log(parent.title);
-            return author.find((a) => a.name === parent.author);
+            return authors.find((a) => a.name === parent.author);
         },
     },
 };

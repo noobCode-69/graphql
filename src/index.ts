@@ -22,7 +22,7 @@ const books: Book[] = [
   },
 ];
 
-const author: Author[] = [
+const authors: Author[] = [
   {
     name: "Kate Chopin",
     books: ["The Awakening"],
@@ -48,25 +48,52 @@ const typeDefs = `#graphql
 
 
   type Query {
+    # top-level or root-level queries
     books : [Book]
     author : [Author]
   }
+
+
+  type Mutation {
+    # top-level or root-level mutations
+    books(title : String , author : String) : Book
+  }
+
 `;
 
-// resolver is a object , that have two properties functions only , Query and Mutation
 const resolvers = {
   Query: {
     books: (): Book[] => {
       return books;
     },
     author: (): Author[] => {
-      return author;
+      return authors;
+    },
+  },
+
+  Mutation: {
+    books: (parent, { title, author }): Book => {
+      const existingAuthor = authors.find((a) => a.name === author);
+      if (!existingAuthor) {
+        authors.push({
+          name: author,
+          books: [title],
+        });
+      } else {
+        existingAuthor.books.push(title);
+      }
+      const newBook = {
+        title,
+        author,
+      };
+      books.push(newBook);
+      return newBook;
     },
   },
 
   Book: {
     author: (parent: Book): Author => {
-      return author.find((a) => a.name === parent.author);
+      return authors.find((a) => a.name === parent.author);
     },
   },
 };

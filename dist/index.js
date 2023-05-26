@@ -4,18 +4,22 @@ const books = [
     {
         title: "The Awakening",
         author: "Kate Chopin",
+        newTitle: "The Awakening but new."
     },
     {
         title: "City of Glass",
         author: "Paul Auster",
+        newTitle: "City of Glass but new."
     },
     {
         title: "The complete works of William Shakespeare",
         author: "Austen Kutcher",
+        newTitle: "The complete works of William Shakespeare but new."
     },
     {
         title: "Julius Ceaser",
         author: "Willian Shakespeare",
+        newTitle: "Julius Ceaser but new."
     },
 ];
 const authors = [
@@ -36,7 +40,6 @@ const authors = [
         books: ["The complete works of William Shakespeare"],
     },
 ];
-// Make typeDef , #graphql is used for syntax highlighting , but not working in my machine
 const typeDefs = `#graphql
   
 
@@ -49,7 +52,8 @@ const typeDefs = `#graphql
   union SearchResult = Book | Author
 
   type Book {
-    title : String
+    title : String  @deprecated(reason: "Use 'newField'."),
+    newTitle : String
     author : Author
   }
 
@@ -96,7 +100,6 @@ const resolvers = {
                     return true;
                 }
             });
-            console.log(matchingAuthors);
             const matchingBooks = books.filter((book) => {
                 if (book.title.includes(contains)) {
                     return true;
@@ -130,6 +133,7 @@ const resolvers = {
             const newBook = {
                 title,
                 author,
+                newTitle: `${title} but new.`
             };
             books.push(newBook);
             return newBook;

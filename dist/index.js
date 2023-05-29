@@ -1,25 +1,22 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
+import { GraphQLError } from "graphql";
 const books = [
     {
         title: "The Awakening",
         author: "Kate Chopin",
-        newTitle: "The Awakening but new."
     },
     {
         title: "City of Glass",
         author: "Paul Auster",
-        newTitle: "City of Glass but new."
     },
     {
         title: "The complete works of William Shakespeare",
         author: "Austen Kutcher",
-        newTitle: "The complete works of William Shakespeare but new."
     },
     {
         title: "Julius Ceaser",
         author: "Willian Shakespeare",
-        newTitle: "Julius Ceaser but new."
     },
 ];
 const authors = [
@@ -52,8 +49,7 @@ const typeDefs = `#graphql
   union SearchResult = Book | Author
 
   type Book {
-    title : String  @deprecated(reason: "Use 'newField'."),
-    newTitle : String
+    title : String
     author : Author
   }
 
@@ -76,6 +72,7 @@ const typeDefs = `#graphql
 
 `;
 const resolvers = {
+    // If you want to query a union or interface you will have to provide a resolveType for it.
     SearchResult: {
         __resolveType(obj) {
             if (obj.name) {
@@ -118,7 +115,11 @@ const resolvers = {
         },
     },
     Mutation: {
-        books: (parent, { book }) => {
+        books: (parent, { book }, contextValue) => {
+            const isAdmin = contextValue.isAdmin;
+            if (!isAdmin) {
+                throw new GraphQLError("User is not admin");
+            }
             const { author, title } = book;
             const existingAuthor = authors.find((a) => a.name === author);
             if (!existingAuthor) {
@@ -133,7 +134,6 @@ const resolvers = {
             const newBook = {
                 title,
                 author,
-                newTitle: `${title} but new.`
             };
             books.push(newBook);
             return newBook;
@@ -151,5 +151,8 @@ const server = new ApolloServer({
 });
 const { url } = await startStandaloneServer(server, {
     listen: { port: 4000 },
+    context: async ({ req }) => {
+        return { isAdmin: true };
+    },
 });
 console.log(`🚀  Server ready at: ${url}`);

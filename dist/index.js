@@ -1,6 +1,10 @@
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
 import { GraphQLError } from "graphql";
+import cors from "cors";
+import bodyParser from "body-parser";
+import express from "express";
+const app = express();
 const books = [
     {
         title: "The Awakening",
@@ -149,10 +153,8 @@ const server = new ApolloServer({
     typeDefs,
     resolvers,
 });
-const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
-    context: async ({ req }) => {
-        return { isAdmin: true };
-    },
+await server.start();
+app.use("/graphql", cors(), bodyParser.json(), expressMiddleware(server));
+app.listen(3000, () => {
+    console.log("server started at port ", 3000);
 });
-console.log(`🚀  Server ready at: ${url}`);
